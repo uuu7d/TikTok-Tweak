@@ -9,56 +9,41 @@ jobs:
   build:
     runs-on: macos-latest
     
-    # تحديد مسار Theos كمتغير بيئة للاستخدام في الخطوات التالية
     env:
       THEOS: ${{ github.workspace }}/theos
 
     steps:
-      # الخطوة 1: سحب كود المشروع مع المشروع الفرعي (Theos)
-      # recursive: true هي النقطة الأهم هنا
+      # الخطوة 1: سحب الكود مع المشاريع الفرعية (Theos)
       - name: Checkout Source Code with Submodules
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
 
-      # الخطوة 2: تثبيت الأدوات المطلوبة لعملية البناء
+      # الخطوة 2: تثبيت الأدوات المطلوبة
       - name: Install Dependencies
         run: |
           brew install ldid xz
 
-      # الخطوة 3: تثبيت حزمة SDK (مازلنا بحاجة لهذه الخطوة)
-      # سيتم وضعها مباشرة داخل مجلد theos/sdks
+      # الخطوة 3: تثبيت حزمة SDK
       - name: Install SDK
         run: |
           curl -LO https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz
           tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
 
       # الخطوة 4: بناء وتغليف الأداة
-      # الأمر يعمل داخل مجلد TikTokPro
       - name: Build Tweak
         run: |
           cd TikTokPro
           make clean package
 
-      # الخطوة 5: إنشاء إصدار جديد على GitHub
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # الخطوة 5: (جديد) حفظ ملف .deb الناتج كـ Artifact
+      # هذا سيسمح لك بتحميل الملف مباشرة بعد انتهاء عملية البناء
+      - name: Upload .deb as Artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: build-${{ github.run_number }}
-          release_name: Build ${{ github.run_number }}
-          draft: false
-          prerelease: true
+          name: tiktokpro-deb
+          path: TikTokPro/packages/*.deb
 
-      # الخطوة 6: رفع ملف .deb إلى الإصدار
-      - name: Upload Tweak .deb to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: TikTokPro/packages/*.deb
-          asset_name: tiktokpro.deb
-          asset_content_type: application/vnd.debian.binary-package
+# --- تم حذف الخطوات التالية ---
+# - name: Create GitHub Release
+# - name: Upload Tweak .deb to Release
