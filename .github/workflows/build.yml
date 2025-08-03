@@ -20,13 +20,12 @@ jobs:
         run: |
           brew install ldid xz
 
-      - name: Install #TheOs
+      - name: Install TheOs
         run: |
           git clone --recursive https://github.com/theos/theos.git $THEOS/
 
       - name: Build Tweak
         run: |
-          cd TikTok-Tweak  # الانتقال إلى مجلد الأداة
           make clean package
 
       - name: Create GitHub Release
