@@ -1,4 +1,4 @@
-name: Build TikTokPro Tweak
+name: Build TikTok-Tweak Tweak
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
 
       - name: Build Tweak
         run: |
-          cd TikTokPro  # الانتقال إلى مجلد الأداة
+          cd TikTok-Tweak  # الانتقال إلى مجلد الأداة
           make clean package
 
       - name: Create GitHub Release
@@ -46,6 +46,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: TikTokPro/packages/*.deb # المسار الصحيح للملف
+          asset_path: TikTok-Tweak/packages/*.deb # المسار الصحيح للملف
           asset_name: tiktokpro.deb
           asset_content_type: application/vnd.debian.binary-package
