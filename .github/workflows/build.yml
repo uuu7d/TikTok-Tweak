@@ -1,38 +1,57 @@
-name: Build TikTokPro Tweak
+name: Build and Release Tweak
 
+# هذا القسم يحدد متى يتم تشغيل الـ Workflow
+# هنا، سيتم تشغيله عند كل عملية 'push' للفرع الرئيسي 'main'
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   build:
+    # سيتم تشغيل هذا العمل على أحدث نسخة من نظام macOS
     runs-on: macos-latest
-    
-    env:
-      THEOS: ${{ github.workspace }}/theos
+
+    # (الحل) الطريقة الأولى: تحديد مجلد العمل الافتراضي لكل أوامر 'run'
+    # هذا يضمن أن جميع الأوامر ستعمل من داخل مجلد المشروع
+    defaults:
+      run:
+        working-directory: ./TikTokPro
 
     steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v4
-
-      - name: Install Dependencies
-        run: |
-          brew install ldid xz
-
-      - name: Install Theos & SDK
-        run: |
-          git clone --recursive https://github.com/theos/theos.git $THEOS
-          curl -LO https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz
-          tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
-
-      - name: Build and Package
-        run: |
-        cd TikTokPro
-        make clean package
-
-     - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      # الخطوة 1: سحب كود المشروع من GitHub
+      # يتم وضع الكود داخل مجلد اسمه TikTokPro ليتوافق مع مجلد العمل الافتراضي
+      - name: Checkout Project Code
+        uses: actions/checkout@v3
         with:
-          name: TikTokPro-Deb
-          path: ./packages/*.deb
+          path: TikTokPro
+          submodules: 'recursive' # مهم إذا كان مشروعك يحتوي على مكتبات فرعية
+
+      # الخطوة 2: إنشاء إصدار جديد (Release) على GitHub
+      # هذا ضروري للحصول على رابط الرفع للخطوة التالية
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      # الخطوة 3: بناء وتغليف الأداة
+      # سيتم تنفيذ هذا الأمر تلقائياً داخل مجلد TikTokPro بسبب الإعدادات الافتراضية
+      - name: Build and Package Tweak
+        run: make clean package
+
+      # الخطوة 4: رفع ملف الـ .deb النهائي إلى الإصدار الذي تم إنشاؤه
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./TikTokPro/packages/*.deb # المسار الصحيح للملف من المجلد الرئيسي
+          asset_name: tiktokpro-${{ github.run_number }}.deb # اسم فريد للملف في كل مرة
+          asset_content_type: application/vnd.debian.binary-package
