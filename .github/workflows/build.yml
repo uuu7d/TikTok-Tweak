@@ -23,12 +23,12 @@ jobs:
       - name: Install Theos & SDK
         run: |
           git clone --recursive https://github.com/theos/theos.git $THEOS
-          curl -LO https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz
-          tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
+          curl -LO https://github.com/kabiroberai/sdks/releases/download/v1.0/iPhoneOS16.4.sdk.tar.xz
+          tar -xf iPhoneOS16.4.sdk.tar.xz -C $THEOS/sdks/
 
       - name: Build Tweak
         run: |
-          # تم حذف أمر "cd TikTokPro" من هنا
+          cd TikTokPro  # ==> هذا الأمر سيعمل الآن لأن المجلد موجود
           make clean package
 
       - name: Create GitHub Release
@@ -48,6 +48,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: packages/*.deb # تم تعديل المسار هنا
+          asset_path: TikTokPro/packages/*.deb
           asset_name: tiktokpro.deb
           asset_content_type: application/vnd.debian.binary-package
