@@ -1,26 +1,37 @@
 #import <UIKit/UIKit.h>
 
-// تعريف الكائنات التي تحتوي على بيانات الفيديو
+// تعريفات أساسية للروابط
 @interface AWEURLModel : NSObject
 @property (nonatomic, copy) NSArray *originURLList;
 @end
 
+// تعريف موديل الفيديو مع خيارات الجودة
 @interface AWEVideoModel : NSObject
-@property (nonatomic, strong) AWEURLModel *playURL;
+@property (nonatomic, strong) AWEURLModel *playURL; // جودة عادية
+@property (nonatomic, strong) AWEURLModel *hdPlayURL; // جودة عالية (إذا توفرت)
 @end
 
+// تعريف موديل الصور
+@interface AWEPhotoModel : NSObject
+@property (nonatomic, strong) AWEURLModel *originPhotoURL;
+@end
+
+// تعريف موديل ألبوم الصور
+@interface AWEPhotoAlbumModel : NSObject
+@property (nonatomic, copy) NSArray<AWEPhotoModel *> *photos;
+@end
+
+// تعريف الموديل الرئيسي للمنشور
 @interface AWEAwemeModel : NSObject
 @property (nonatomic, strong) AWEVideoModel *video;
-@property (nonatomic, strong) id photoAlbum; 
+@property (nonatomic, strong) AWEPhotoAlbumModel *photoAlbum;
 @end
 
-// تعريف الفئة التي تعرض خلية الفيديو (الهدف الأول)
+// تعريف الفئات التي سنقوم بتعديلها
 @interface AWEFeedCellViewController : UIViewController
 @property (nonatomic, strong) AWEAwemeModel *model;
 @end
 
-// --- الجزء الجديد ---
-// تعريف الفئة التي تعرض خلية الستوري (الهدف الثاني)
 @interface TTKStoryDetailTableViewCell : UITableViewCell
 @property (nonatomic, strong) AWEAwemeModel *model;
 @end
