@@ -12,15 +12,12 @@ include $(THEOS)/makefiles/common.mk
 # اسم الأداة
 TWEAK_NAME = TikTokPro
 
-# قائمة ملفات الكود التي سيتم تجميعها (مع تعديل اسم الملف)
+# قائمة ملفات الكود التي سيتم تجميعها
 TikTokPro_FILES = Tweak.xm TikTokProHelper.mm
 
-# إعدادات المترجم لإيجاد ملفات الـ header
-TikTokPro_CFLAGS = -fobjc-arc -I.
-
-# --- السطر الجديد والمهم ---
-# إجبار المترجم على استخدام معيار C++11 الحديث
-TikTokPro_CXXFLAGS = -std=c++11
+# --- تم التعديل هنا ---
+# إعدادات المترجم مع إجبار استخدام C++11
+TikTokPro_CFLAGS = -fobjc-arc -I. -std=c++11
 
 # المكتبات التي يعتمد عليها الكود
 TikTokPro_FRAMEWORKS = UIKit Foundation CoreGraphics Security Photos
