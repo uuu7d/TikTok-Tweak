@@ -13,7 +13,13 @@
 @property (nonatomic, strong) AWEVideoModel *video;
 @end
 
-// تعريف الفئة التي تعرض خلية الفيديو (هدفنا)
+// تعريف الفئة التي تعرض خلية الفيديو (الهدف الأول)
 @interface AWEFeedCellViewController : UIViewController
+@property (nonatomic, strong) AWEAwemeModel *model;
+@end
+
+// --- الجزء الجديد ---
+// تعريف الفئة التي تعرض خلية الستوري (الهدف الثاني)
+@interface TTKStoryDetailTableViewCell : UITableViewCell
 @property (nonatomic, strong) AWEAwemeModel *model;
 @end
