@@ -29,6 +29,12 @@ jobs:
           curl -LO https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz
           # 3. فك ضغط الـ SDK
           tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
+      - name: Debug File Structure and Makefile
+        run: |
+        echo "--- Verifying file structure ---"
+          ls -R
+          echo "--- Verifying Makefile content ---"
+          cat Makefile
 
       - name: Build Tweak
         run: |
