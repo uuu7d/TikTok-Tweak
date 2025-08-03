@@ -12,8 +12,8 @@ include $(THEOS)/makefiles/common.mk
 # اسم الأداة
 TWEAK_NAME = TikTokPro
 
-# قائمة ملفات الكود التي سيتم تجميعها
-TikTokPro_FILES = Tweak.xm TikTokProHelper.m
+# قائمة ملفات الكود التي سيتم تجميعها (مع تعديل اسم الملف)
+TikTokPro_FILES = Tweak.xm TikTokProHelper.mm
 
 # إعدادات المترجم لإيجاد ملفات الـ header
 TikTokPro_CFLAGS = -fobjc-arc -I.
