@@ -20,23 +20,23 @@ jobs:
         run: |
           brew install ldid xz
 
-      # -- تم تعديل هذه الخطوة --
-      - name: Install Theos & Specific SDK
+      - name: Install Theos & SDK
         run: |
-          # 1. تحميل Theos
           git clone --recursive https://github.com/theos/theos.git $THEOS
-          # 2. تحميل نسخة SDK مستقرة (iOS 16.4) من مصدر بديل
-          curl -LO https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz
-          # 3. فك ضغط الـ SDK
+          curl -LO https://github.com/kabiroberai/sdks/releases/download/v1.0/iPhoneOS16.5.sdk.tar.xz
           tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
+
+      # --- الخطوة التشخيصية المطلوبة ---
       - name: Debug File Structure and Makefile
         run: |
-        echo "--- Verifying file structure ---"
+          echo "--- Verifying file structure (from root) ---"
           ls -R
-       echo "--- Verifying Makefile content ---"
-          cat Makefile
-     - name: Build Tweak
+          echo "--- Verifying Makefile content (in TikTokPro/) ---"
+          cat TikTokPro/Makefile
+
+      - name: Build Tweak
         run: |
+          cd TikTokPro
           make clean package
 
       - name: Create GitHub Release
@@ -56,6 +56,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: /packages/*.deb
+          asset_path: TikTokPro/packages/*.deb
           asset_name: tiktokpro.deb
           asset_content_type: application/vnd.debian.binary-package
