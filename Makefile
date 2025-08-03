@@ -1,12 +1,24 @@
-TARGET := iphone:clang:latest:7.0
-INSTALL_TARGET_PROCESSES = SpringBoard
+# المعمارية المستهدفة (آيفون XS والأحدث)
+ARCHS = arm64e
 
+# إعدادات Theos
+THEOS_DEVICE_IP = # أدخل IP جهازك هنا عند البناء المحلي
+THEOS_DEVICE_PORT = 22
+GO_EASY_ON_ME = 1
+DEBUG = 0
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = UIAlertMessage
+# اسم الأداة
+TWEAK_NAME = TikTokPro
 
-UIAlertMessage_FILES = Tweak.xm
-UIAlertMessage_CFLAGS = -fobjc-arc
+# قائمة ملفات الكود التي سيتم تجميعها
+TikTokPro_FILES = Tweak.xm TikTokProHelper.m
 
-include $(THEOS_MAKE_PATH)/tweak.mk
+# إعدادات المترجم لإيجاد ملفات الـ header
+TikTokPro_CFLAGS = -fobjc-arc -I.
+
+# المكتبات التي يعتمد عليها الكود
+TikTokPro_FRAMEWORKS = UIKit Foundation CoreGraphics Security Photos
+
+include $(THEOS)/makefiles/tweak.mk
