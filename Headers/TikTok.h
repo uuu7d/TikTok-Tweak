@@ -36,3 +36,16 @@
 @interface TTKStoryDetailTableViewCell : UITableViewCell
 @property (nonatomic, strong) AWEAwemeModel *model;
 @end
+// --- تعريفات جديدة لصفحة الإعدادات ---
+@interface AWESettingItemModel : NSObject
+@property (nonatomic, copy) NSString *title;
+@end
+
+@interface AWESettingTableViewCell : UITableViewCell
+@property (nonatomic, strong) AWESettingItemModel *item;
+@end
+
+@interface AWESettingsNormalSectionViewModel : NSObject
+@property (nonatomic, copy) NSString *sectionIdentifier;
+- (void)insertCell:(id)cell atRow:(NSInteger)row;
+@end
