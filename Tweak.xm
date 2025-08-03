@@ -1,6 +1,6 @@
 #import "Headers/TikTok.h"
+#import <Photos/Photos.h> // لاستخدام مكتبة الصور
 
-// --- تعديل رقم 1: زر التحميل القائمة في الـ Feed ---
 %hook AWEFeedCellViewController
 
 - (void)viewDidLoad {
@@ -11,67 +11,107 @@
     [downloadButton setTintColor:[UIColor whiteColor]];
     downloadButton.frame = CGRectMake(self.view.frame.size.width - 65, self.view.frame.size.height - 350, 50, 50);
 
-    // --- التغيير الرئيسي هنا ---
-    // بدلاً من ربط الزر بوظيفة واحدة، نربطه بقائمة من الخيارات
     downloadButton.menu = [self createDownloadMenu];
-    downloadButton.showsMenuAsPrimaryAction = YES; // لجعل القائمة تظهر بضغطة زر عادية
+    downloadButton.showsMenuAsPrimaryAction = YES;
 
     [self.view addSubview:downloadButton];
 }
 
-// --- وظيفة جديدة لإنشاء القائمة ---
 %new
 - (UIMenu *)createDownloadMenu {
-    // مصفوفة لتخزين الخيارات التي ستظهر في القائمة
     NSMutableArray<UIAction *> *actions = [NSMutableArray array];
 
-    // التحقق من نوع المحتوى: هل هو فيديو أم صور؟
     BOOL isVideo = (self.model.video != nil);
     BOOL isPhotos = (self.model.photoAlbum != nil);
 
-    // --- إنشاء خيارات الفيديو ---
+    // --- خيارات الفيديو ---
     UIAction *downloadVideoHD = [UIAction actionWithTitle:@"تحميل الفيديو HD" image:[UIImage systemImageNamed:@"4k.tv"] identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
-        NSLog(@"[TikTokPro] User selected: Download Video HD");
+        // نحاول الحصول على رابط HD، وإذا لم يكن موجودًا نستخدم الرابط العادي
+        NSURL *videoURL = [NSURL URLWithString:self.model.video.hdPlayURL.originURLList.firstObject ?: self.model.video.playURL.originURLList.firstObject];
+        [self saveMediaFromURL:videoURL withExtension:@".mp4"];
     }];
 
-    UIAction *downloadVideoNormal = [UIAction actionWithTitle:@"تحميل الفيديو (جودة عادية)" image:[UIImage systemImageNamed:@"sd.video"] identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
-        NSLog(@"[TikTokPro] User selected: Download Video Normal");
+    // --- خيارات الصور ---
+    UIAction *downloadImageHD = [UIAction actionWithTitle:@"تحميل الصور HD" image:[UIImage systemImageNamed:@"photo.on.rectangle.angled"] identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
+        // حاليًا نحمل أول صورة فقط كمثال
+        NSURL *imageURL = [NSURL URLWithString:self.model.photoAlbum.photos.firstObject.originPhotoURL.originURLList.firstObject];
+        [self saveMediaFromURL:imageURL withExtension:@".jpg"];
     }];
 
-    // --- إنشاء خيارات الصور ---
-    UIAction *downloadImageHD = [UIAction actionWithTitle:@"تحميل الصورة HD" image:[UIImage systemImageNamed:@"photo.on.rectangle.angled"] identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
-        NSLog(@"[TikTokPro] User selected: Download Image HD");
-    }];
-
-    UIAction *downloadImageAsVideo = [UIAction actionWithTitle:@"تحميل الصور كفيديو" image:[UIImage systemImageNamed:@"film"] identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
-        NSLog(@"[TikTokPro] User selected: Download Images as Video");
-    }];
-
-    // --- تطبيق الشرط: تفعيل أو تعطيل الخيارات ---
+    // --- تطبيق الشرط ---
     if (isVideo) {
-        // إذا كان المحتوى فيديو، فعّل خيارات الفيديو وعطّل خيارات الصور
         [actions addObject:downloadVideoHD];
-        [actions addObject:downloadVideoNormal];
         downloadImageHD.attributes = UIMenuElementAttributesDisabled;
-        downloadImageAsVideo.attributes = UIMenuElementAttributesDisabled;
         [actions addObject:downloadImageHD];
-        [actions addObject:downloadImageAsVideo];
     } else if (isPhotos) {
-        // إذا كان المحتوى صورًا، فعّل خيارات الصور وعطّل خيارات الفيديو
         downloadVideoHD.attributes = UIMenuElementAttributesDisabled;
-        downloadVideoNormal.attributes = UIMenuElementAttributesDisabled;
         [actions addObject:downloadVideoHD];
-        [actions addObject:downloadVideoNormal];
         [actions addObject:downloadImageHD];
-        [actions addObject:downloadImageAsVideo];
     }
 
-    // إنشاء وإرجاع القائمة النهائية
     return [UIMenu menuWithTitle:@"خيارات التحميل" children:actions];
+}
+
+// --- وظيفة جديدة للتحميل والحفظ ---
+%new
+- (void)saveMediaFromURL:(NSURL *)mediaURL withExtension:(NSString *)fileExtension {
+    if (!mediaURL) {
+        [self showAlertWithTitle:@"خطأ" message:@"لم يتم العثور على رابط صالح."];
+        return;
+    }
+
+    // بدء التحميل في الخلفية
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSData *mediaData = [NSData dataWithContentsOfURL:mediaURL];
+        if (!mediaData) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self showAlertWithTitle:@"خطأ" message:@"فشل تحميل الملف."];
+            });
+            return;
+        }
+
+        // كتابة الملف مؤقتًا على الجهاز
+        NSString *tempPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSUUID UUID].UUIDString stringByAppendingString:fileExtension]];
+        [mediaData writeToFile:tempPath atomically:YES];
+
+        // طلب صلاحية الوصول إلى الصور وحفظ الملف
+        [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+            if (status == PHAuthorizationStatusAuthorized) {
+                [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+                    if ([fileExtension isEqualToString:@".mp4"]) {
+                        [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:[NSURL fileURLWithPath:tempPath]];
+                    } else {
+                        [PHAssetChangeRequest creationRequestForAssetFromImageAtFileURL:[NSURL fileURLWithPath:tempPath]];
+                    }
+                } completionHandler:^(BOOL success, NSError * _Nullable error) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        if (success) {
+                            [self showAlertWithTitle:@"تم بنجاح" message:@"تم حفظ الملف في ألبوم الصور."];
+                        } else {
+                            [self showAlertWithTitle:@"خطأ" message:[NSString stringWithFormat:@"فشل الحفظ: %@", error.localizedDescription]];
+                        }
+                    });
+                }];
+            } else {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self showAlertWithTitle:@"خطأ" message:@"الرجاء السماح بالوصول إلى الصور من إعدادات الخصوصية."];
+                });
+            }
+        }];
+    });
+}
+
+// --- وظيفة مساعدة لعرض التنبيهات ---
+%new
+- (void)showAlertWithTitle:(NSString *)title message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"حسنًا" style:UIAlertActionStyleDefault handler:nil]];
+
+    // البحث عن الواجهة الرئيسية لعرض التنبيه
+    UIViewController *rootVC = [UIApplication sharedApplication].keyWindow.rootViewController;
+    [rootVC presentViewController:alert animated:YES completion:nil];
 }
 
 %end
 
-
-// ملاحظة: سنقوم بتطبيق نفس المنطق لاحقًا على شاشة الستوري
-// ولكن لنركز على الـ Feed أولاً حتى نتقن الفكرة.
+// ملاحظة: كود الستوري لم نعدله بعد، سنقوم بذلك لاحقًا
