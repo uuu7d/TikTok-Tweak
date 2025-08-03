@@ -25,6 +25,7 @@
 @interface AWEAwemeModel : NSObject
 @property (nonatomic, strong) AWEVideoModel *video;
 @property (nonatomic, strong) AWEPhotoAlbumModel *photoAlbum;
+@property (nonatomic, assign) BOOL isAds;
 @end
 
 // تعريف الفئات التي سنقوم بتعديلها
