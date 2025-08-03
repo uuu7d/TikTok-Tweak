@@ -11,6 +11,7 @@
 
 @interface AWEAwemeModel : NSObject
 @property (nonatomic, strong) AWEVideoModel *video;
+@property (nonatomic, strong) id photoAlbum; 
 @end
 
 // تعريف الفئة التي تعرض خلية الفيديو (الهدف الأول)
