@@ -33,10 +33,9 @@ jobs:
         run: |
         echo "--- Verifying file structure ---"
           ls -R
-          echo "--- Verifying Makefile content ---"
+       echo "--- Verifying Makefile content ---"
           cat Makefile
-
-      - name: Build Tweak
+     - name: Build Tweak
         run: |
           make clean package
 
