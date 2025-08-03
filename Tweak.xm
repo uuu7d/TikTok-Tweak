@@ -65,3 +65,43 @@
     return [UIMenu menuWithTitle:@"خيارات التحميل" children:actions];
 }
 %end
+// اعدادات
+%hook AWESettingsNormalSectionViewModel
+
+// يتم استدعاؤها عند تحميل أي قسم في الإعدادات
+- (void)viewDidLoad {
+    %orig;
+
+    // نتحقق مما إذا كنا في قسم "الحساب"
+    if ([self.sectionIdentifier isEqualToString:@"account_and_privacy"]) {
+
+        // إنشاء عنصر جديد في القائمة
+        AWESettingItemModel *settingsItem = [[%c(AWESettingItemModel) alloc] init];
+        [settingsItem setTitle:@"إعدادات TikTokPro"];
+
+        // إنشاء الخلية التي ستعرض العنصر
+        AWESettingTableViewCell *settingsCell = [[%c(AWESettingTableViewCell) alloc] initWithStyle:0 reuseIdentifier:nil];
+        [settingsCell setItem:settingsItem];
+
+        // إضافة الخلية إلى بداية قسم "الحساب"
+        [self insertCell:settingsCell atRow:0];
+    }
+}
+
+// يتم استدعاؤها عند الضغط على أي خلية
+- (void)tableView:(id)tableView didSelectRowAtIndexPath:(id)indexPath {
+    %orig;
+
+    UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+    if ([cell isKindOfClass:%c(AWESettingTableViewCell)]) {
+        AWESettingTableViewCell *settingsCell = (AWESettingTableViewCell *)cell;
+        if ([settingsCell.item.title isEqualToString:@"إعدادات TikTokPro"]) {
+
+            // عند الضغط على الزر الخاص بنا، نقوم بفتح إعدادات النظام
+            NSURL *url = [NSURL URLWithString:@"App-Prefs:root=TikTokProPrefs"];
+            [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        }
+    }
+}
+
+%end
