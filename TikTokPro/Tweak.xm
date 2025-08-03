@@ -2,8 +2,7 @@
 #import "TikTokProHelper.h"
 
 /*
-    ============= الخطوة 1: تعريف الواجهات (Interfaces) =============
-    تم إضافة API_AVAILABLE هنا أيضاً للمساعدة في تقليل التحذيرات.
+    ============= الواجهات (Interfaces) =============
 */
 @interface AWEFeedCellViewController ()
 - (UIMenu *)createDownloadMenu API_AVAILABLE(ios(13.0));
@@ -20,17 +19,13 @@
 
 - (void)viewDidLoad {
     %orig;
-
     if (@available(iOS 14.0, *)) {
         UIButton *downloadButton = [UIButton buttonWithType:UIButtonTypeSystem];
         [downloadButton setImage:[UIImage systemImageNamed:@"square.and.arrow.down"] forState:UIControlStateNormal];
         [downloadButton setTintColor:[UIColor whiteColor]];
-        
         downloadButton.menu = [self createDownloadMenu];
         downloadButton.showsMenuAsPrimaryAction = YES;
-        
         [self.view addSubview:downloadButton];
-
         downloadButton.translatesAutoresizingMaskIntoConstraints = NO;
         [NSLayoutConstraint activateConstraints:@[
             [downloadButton.trailingAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.trailingAnchor constant:-15],
@@ -44,7 +39,6 @@
 %new
 - (UIMenu *)createDownloadMenu API_AVAILABLE(ios(13.0)) {
     NSMutableArray<UIAction *> *actions = [NSMutableArray array];
-
     BOOL isVideo = (self.model.video != nil);
     BOOL isPhotos = (self.model.photoAlbum.photos.count > 0);
 
@@ -60,7 +54,6 @@
     
     if (isPhotos) {
         UIAction *downloadImagesAction = [UIAction actionWithTitle:@"تحميل كل الصور HD" image:[UIImage systemImageNamed:@"photo.on.rectangle.angled"] identifier:nil handler:^(__kindof UIAction * _Nonnull action) {
-            // ✅ الحل: تم تصحيح اسم الكلاس إلى AWEPhotoModel
             for (AWEPhotoModel *photo in self.model.photoAlbum.photos) {
                 NSString *urlString = photo.originPhotoURL.originURLList.firstObject;
                 if (urlString) {
@@ -108,12 +101,9 @@
             UIButton *downloadStoryButton = [UIButton buttonWithType:UIButtonTypeSystem];
             [downloadStoryButton setImage:[UIImage systemImageNamed:@"square.and.arrow.down"] forState:UIControlStateNormal];
             [downloadStoryButton setTintColor:[UIColor whiteColor]];
-            
             downloadStoryButton.menu = [instance createDownloadMenu];
             downloadStoryButton.showsMenuAsPrimaryAction = YES;
-            
             [[instance contentView] addSubview:downloadStoryButton];
-            
             downloadStoryButton.translatesAutoresizingMaskIntoConstraints = NO;
             [NSLayoutConstraint activateConstraints:@[
                 [downloadStoryButton.topAnchor constraintEqualToAnchor:[instance contentView].safeAreaLayoutGuide.topAnchor constant:15],
@@ -138,8 +128,9 @@
 }
 %end
 
+/*
 // =======================================================
-//                Hook خاص بالإعدادات
+//         Hook خاص بالإعدادات (تم تعطيله مؤقتاً)
 // =======================================================
 %hook AWESettingsNormalSectionViewModel
 
@@ -160,7 +151,6 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     %orig;
     
-    // ✅ الحل: الرجوع للطريقة الأصلية والأكثر أمانًا للتحقق من الخلية
     UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
     if ([cell isKindOfClass:%c(AWESettingTableViewCell)]) {
         AWESettingTableViewCell *settingsCell = (AWESettingTableViewCell *)cell;
@@ -173,3 +163,4 @@
     }
 }
 %end
+*/
